@@ -1,0 +1,312 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="shop-rates">
+
+  <template>
+
+    <style include="shop-button">
+
+      shop-images-slider {
+        position: relative;
+        height: 500px;
+      }
+
+      #container {
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+      }
+
+      #content {
+        width: 80%;
+      }
+      .horizontal {
+        @apply --layout-horizontal;
+        @apply --layout-center;
+        @apply --layout-wrap;
+      }
+      p, li {
+        font-size: 16px;
+        text-align: justify;
+      }
+      paper-dropdown-menu {
+        margin-right: 10px;
+      }
+      paper-item {
+        --paper-item-min-height: 20px;
+        height: 20px;
+        --paper-item: {
+          padding: 4px 10px;
+        };
+      }
+      paper-button {
+        color: #fff;
+        padding: 0;
+        max-height: 40px;
+        height: 40px;
+        background-color: var(--paper-grey-900);
+      }
+      paper-button.blue {
+        background-color: var(--paper-blue-300);
+      }
+      div[hidden] {
+        display: none;
+      }
+      div.mini {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #888;
+      }
+      div.mini.green {
+        background-color: var(--paper-green-300);
+      }
+      div.mini.red {
+        background-color: var(--paper-red-300);
+      }
+
+      #day {
+        margin: 10px;
+        @apply --layout-horizontal;
+        @apply --layout-wrap;
+        width: 400px;
+      }
+      #day[hidden] {
+        display: none;
+      }
+      .day {
+        border: 1px solid #000;
+        width: 50px;
+        height: 50px;
+        padding: 1px;
+        margin-top: 2px;
+        margin-right: 2px;
+        @apply --layout-vertical;
+        @apply --layout-center-justified;
+        @apply --layout-center;
+      }
+      .day.title {
+        background-color: var(--paper-blue-300);
+      }
+      .day.avail {
+        background-color: var(--paper-green-300);
+      }
+      .day.book {
+        background-color: var(--paper-red-300);
+      }
+      .day.null {
+        background-color: var(--paper-grey-100);
+      }
+      .price {
+        font-size: 12px;
+      }
+      .info {
+        margin-right: 20px;
+        margin-left: 5px;
+      }
+
+      @media (max-width: 767px) {
+        #content {
+          width: 95%;
+        }
+        #day {
+          width: 350px;
+        }
+        .day {
+          width: 40px;
+          height: 40px;
+        }
+        .num {
+          font-size: 12px;
+        }
+        .price {
+          font-size: 12px;
+        }
+      }
+
+    </style>
+
+    <shop-image-slider src="[[categories]]" current-img=2 slide=true></shop-image-slider>
+    <div id="container">
+      <div id="content">
+        <h1>Availability Calendar</h1>
+        <div class="horizontal">
+          <paper-dropdown-menu id="month" label="Month" no-animations>
+            <paper-listbox id="month" slot="dropdown-content" attr-for-selected="name" selected="{{selectMonth}}">
+              <template is="dom-repeat" items="{{month}}" as="m">
+                <paper-item name="{{m}}">{{m}}</paper-item>
+              </template>
+            </paper-listbox>
+          </paper-dropdown-menu>
+          <paper-dropdown-menu id="year" label="Year" no-animations>
+            <paper-listbox id="year" slot="dropdown-content" attr-for-selected="name" selected="{{selectYear}}">
+              <template is="dom-repeat" items="{{year}}" as="y">
+                <paper-item name="{{y}}">{{y}}</paper-item>
+              </template>
+            </paper-listbox>
+          </paper-dropdown-menu>
+          <paper-button on-tap="_setDate">Go</paper-button>
+          <paper-button class='blue' on-tap="_reloadDate">Reload</paper-button>
+        </div>
+
+        <div id="day" hidden="[[show]]">
+          <template is="dom-repeat" items="{{day}}">
+            <div class="day title">
+              <span>{{item}}</span>
+            </div>
+          </template>
+          <template is="dom-repeat" items="{{days}}" as="d">
+            <template is="dom-if" if="{{_isNull(d.roomState)}}">
+              <div class="day null">
+                <span>&nbsp;</span>
+                <span>&nbsp;</span>
+              </div>
+            </template>
+            <template is="dom-if" if="{{_isAvail(d.roomState)}}">
+              <div class="day avail">
+                <span class="num">{{d.num}}</span>
+                <span class="price">${{d.price}}</span>
+              </div>
+            </template>
+            <template is="dom-if" if="{{_isBook(d.roomState)}}">
+              <div class="day book">
+                <span class="num">{{d.num}}</span>
+                <span class="price">${{d.price}}</span>
+              </div>
+            </template>
+          </template>
+        </div>
+        <div hidden="[[show]]">
+          <div class="horizontal">
+            <div class="mini green"></div><span class="info">Available</span>
+            <div class="mini red"></div><span class="info">Booked</span>
+            <span><h3 hidden="[[show]]">(Price in USD)</h3></span>
+          </div>
+        </div>
+
+        <p>The rates include Daily Cleaning, Bath Amenities, Towels & Linen, 3 times a week Pool Maintenance, and Welcome Breakfast with Private Chef cooking Western & Asian Breakfast.</p>
+        <ul>
+          <li>Complimentary Airport Pick Up for minimum stay of 3 nights</li>
+          <li>Complimentary Airport Pick Up & Drop Off for minimum stay of 7 Nights</li>
+          <li>Airport Pick Up & Drop Off and Balinese Buffett Dinner is Complimentary for minimum stay of 14 Nights</li>
+          <li>Fully Refundable Incidental Deposit of IDR 3,500,000 / USD 300 / AUD 350 / SGD 350 / EUR 300 / GBP 300 is Payable Upon Check-in</li>
+        </ul>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+
+    class ShopRates extends Polymer.Element {
+
+      static get is() { return 'shop-rates'; }
+
+      static get properties() { return {
+        show: {
+          type: Boolean,
+          value: true
+        },
+        price: {
+          type: String,
+          value: null
+        },
+        month: {
+          type: Array,
+          value: [
+            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+          ]
+        },
+        year: {
+          type: Array,
+          value: ["2018", "2019", "2020", "2021"]
+        },
+
+        day: {
+          type: Array,
+          value: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        },
+        days: {
+          type: Array,
+          value: []
+        },
+
+        categories: {
+          type: Object
+        },
+
+        visible: {
+          type: Boolean,
+          observer: '_visibleChanged'
+        },
+
+        selectMonth: String,
+
+        selectYear: String
+      }}
+
+      _reloadDate(){
+        var today = new Date();
+        this.selectMonth = this.month[today.getMonth()];
+        this.selectYear = today.getFullYear();
+        this._setDate();
+      }
+
+      _setDate(){
+        if (allDays.length<=0)
+          setTimeout(()=>{
+            this._setDate()
+          },100)
+        else {
+          this.set('days', []);
+          let days = allDays[this.selectYear][this.month.indexOf(this.selectMonth)].slice(0);
+          let startNull = this.day.indexOf(allDays[this.selectYear][this.month.indexOf(this.selectMonth)][0].str);
+          let endNull = this.day.indexOf(allDays[this.selectYear][this.month.indexOf(this.selectMonth)][allDays[this.selectYear][this.month.indexOf(this.selectMonth)].length-1].str);
+          for (let s=0; s<startNull; s++)
+            days.unshift({num:'&nbsp;',str:'&nbsp;',roomState:-1});
+          for (let e=endNull; e<6; e++)
+            days.push({num:'&nbsp;',str:'&nbsp;',roomState:-1});
+          this.dateBox = false;
+          this.set('days', days)
+          this.show = false;
+        }
+      }
+
+      _isAvail(room) {
+        if (room == 0)
+          return true;
+      }
+
+      _isBook(room) {
+        if (room == 1)
+          return true;
+      }
+
+      _isNull(room) {
+        if (room == -1)
+          return true;
+      }
+
+      _visibleChanged(visible) {
+        if (visible) {
+          this._reloadDate();
+
+          this.dispatchEvent(new CustomEvent('change-section', {
+            bubbles: true, composed: true, detail: {title: 'Rates & Availability'}}));
+        }
+      }
+    }
+
+    customElements.define(ShopRates.is, ShopRates);
+
+  </script>
+
+</dom-module>
