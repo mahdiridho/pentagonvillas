@@ -1,0 +1,99 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="shop-home">
+
+  <template>
+
+    <style include="shop-button">
+
+      shop-images-slider {
+        position: relative;
+        height: 500px;
+      }
+
+      #container {
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+      }
+
+      #content {
+        width: 80%;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      p {
+        font-size: 16px;
+        text-align: justify;
+      }
+
+      @media (max-width: 767px) {
+        #content {
+          width: 95%;
+        }
+
+        .full {
+          display: none;
+        }
+      }
+
+    </style>
+
+    <shop-image-slider src="[[categories]]"></shop-image-slider>
+    <div id="container">
+      <div id="content">
+        <h1 class="full">Lorem Ipsum</h1>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras nisl ex, vulputate eu dapibus ac, tempus vel orci. Pellentesque et nisl tellus. Pellentesque vitae sollicitudin est, in rutrum est. Aenean maximus turpis ut tincidunt pellentesque. Proin sed risus et dui aliquet porttitor. Nunc non lectus quis diam congue tincidunt. Ut iaculis augue at orci aliquam, a laoreet ligula pellentesque. Quisque quis nisi eu nibh posuere posuere ac ut massa. Interdum et malesuada fames ac ante ipsum primis in faucibus. Sed purus justo, feugiat eu laoreet eu, commodo eget ipsum. Proin nisi lorem, egestas eget nibh id, egestas lacinia risus. Aenean porta tempor enim, ac venenatis massa porttitor vitae. Nullam vel molestie erat, at luctus nisl.</p>
+        <p>Donec lorem velit, tincidunt quis eros mattis, malesuada efficitur velit. Phasellus aliquet eu ante id ultrices. Aliquam varius ut elit vel molestie. Vivamus et turpis vestibulum, bibendum mi sit amet, posuere purus. Ut commodo lectus eget convallis fermentum. Ut ac placerat dolor. Vivamus sapien nisl, tincidunt id urna ac, scelerisque pellentesque augue. Maecenas hendrerit turpis vitae nisi laoreet, vel pretium libero mattis. Phasellus magna odio, aliquam id erat nec, porta convallis est. Quisque facilisis est et tempus commodo. Etiam porttitor leo nibh, sit amet fermentum orci pellentesque non.</p>
+        <p>Vestibulum gravida neque a facilisis fermentum. Suspendisse iaculis quis orci eu sodales. Nam et cursus augue. Quisque vitae pellentesque augue. Sed eget massa vitae nisi tempus aliquet quis vulputate sem. Proin porta aliquam viverra. Quisque ultrices interdum nunc, eu aliquam lectus aliquam eget.</p>
+        <p>Vestibulum vel nibh vestibulum nulla tincidunt vulputate facilisis et mi. Morbi ut diam et dui commodo consequat eget a urna. Sed pharetra ex massa, eu pretium lectus ornare non. Integer pharetra tortor quam, ut cursus eros pulvinar rhoncus. Donec vitae maximus tellus, non malesuada nibh. Praesent vel lorem euismod, molestie quam at, mattis arcu. Maecenas id commodo sem. Aliquam pretium enim eu nunc consectetur suscipit.</p>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+
+    class ShopHome extends Polymer.Element {
+
+      static get is() { return 'shop-home'; }
+
+      static get properties() { return {
+
+        categories: {
+          type: Object
+        },
+
+        visible: {
+          type: Boolean,
+          observer: '_visibleChanged'
+        }
+
+      }}
+
+      _visibleChanged(visible) {
+        if (visible) {
+          this.dispatchEvent(new CustomEvent('change-section', {
+            bubbles: true, composed: true, detail: {title: this.categories[0].title}}));
+        }
+      }
+
+    }
+
+    customElements.define(ShopHome.is, ShopHome);
+
+  </script>
+
+</dom-module>
