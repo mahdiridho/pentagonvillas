@@ -1,0 +1,41 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/shop-app.html",
+  "fragments": [
+    "src/shop-gallery.html",
+    "src/shop-rates.html",
+    "src/shop-location.html",
+    "src/shop-testimonial.html",
+    "src/shop-booking.html",
+    "src/shop-contact.html",
+    "src/lazy-resources.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "data/**/*",
+    "images/**/*",
+    "bower.json"
+  ],
+  "extraDependencies": [
+    "app.yaml",
+    "manifest.json",
+    "src/app.js",
+    "bower_components/webcomponentsjs/*"
+  ],
+  "lint": {
+    "rules": ["polymer-2-hybrid"]
+  },
+  "builds": [
+    {
+      "name": "es5-bundled",
+      "js": {"minify": true, "compile": true},
+      "css": {"minify": true},
+      "html": {"minify": true},
+      "bundle": true,
+      "preset": "es5-bundled",
+      "addServiceWorker": true,
+      "addPushManifest": true,
+      "insertPrefetchLinks": true
+    }
+  ]
+}
