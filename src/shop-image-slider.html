@@ -1,0 +1,175 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="shop-image-slider">
+
+  <template>
+
+    <style>
+
+      :host {
+        display: block;
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+      }
+
+      #container {
+        @apply --layout-relative;
+      }
+
+      img {
+        width: 100%;
+      }
+
+      #button {
+        position: absolute;
+        top: 0;left: 0;
+        width: 100%;height: 100%;
+        @apply --layout-horizontal;
+        @apply --layout-justified;
+        @apply --layout-center;
+      }
+      #button[hidden] {
+        display: none;
+      }
+      paper-icon-button {
+        margin-right: 5px;
+        margin-left: 5px;
+        opacity: 0.5;
+        width: 60px;
+        height: 60px;
+        color: #fff;
+        --paper-icon-button-ink-color: var(--paper-indigo-500);
+        background-color: var(--paper-grey-900);
+        border-radius: 3px;
+        padding: 2px;
+      }
+      paper-icon-button:hover {
+        opacity: 0.8;
+        background-color: var(--paper-grey-900);
+        color: white;
+      }
+      @media (max-width: 767px) {
+        paper-icon-button {
+          width: 30px;
+          height: 30px;
+        }
+      }
+
+    </style>
+
+    <div id=container>
+      <div class="img">
+        <img id="img" alt$="[[alt]]" on-load="_onImgLoad" on-error="_onImgError">
+      </div>
+      <div id="button" hidden=[[slide]]>
+        <paper-icon-button icon="icons:navigate-before" title="Previous" on-tap="prev"></paper-icon-button>
+        <paper-icon-button icon="icons:navigate-next" title="Next" on-tap="next"></paper-icon-button>      
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+
+    class ShopImageSlider extends Polymer.Element {
+
+      static get is() { return 'shop-image-slider'; }
+
+      static get properties() { return {
+
+        alt: String,
+
+        src: {
+          type: Array,
+          observer: '_srcChanged'
+        },
+
+        currentImg: {
+          type: Number,
+          value: 0
+        },
+
+        slide: {
+          type: Boolean,
+          value: false
+        }
+
+      }}
+
+      _srcChanged(src) {
+        if (src.length > 0) {
+          clearInterval(this._autoInternal);
+          this.$.img.removeAttribute('src');
+          this.$.img.style.transition = '';
+          this.$.img.style.opacity = 0;
+          if (src) {
+            this.$.img.src = (src[this.currentImg].image)?src[this.currentImg].image:src[this.currentImg];
+            this.$.img.alt = (src[this.currentImg].image)?src[this.currentImg].title:'';
+          }
+        }
+      }
+
+      autoPlay() {
+        this._autoInternal = setInterval(() => {
+          this.next();
+        }, 5000);
+      }
+
+      next() {
+        clearInterval(this._autoInternal);
+        if (this.currentImg == this.src.length - 1)
+          this.currentImg = 0;
+        else
+          this.currentImg++;
+        this._changeImg();
+      }
+
+      prev() {
+        clearInterval(this._autoInternal);
+        if (this.currentImg == 0)
+          this.currentImg = this.src.length - 1;
+        else
+          this.currentImg--;
+        this._changeImg();
+      }
+
+      _changeImg() {
+        this.$.img.style.opacity = 0;
+        setTimeout(()=>{
+          this.$.img.src = (this.src[this.currentImg].image)?this.src[this.currentImg].image:this.src[this.currentImg];
+          this.$.img.alt = (this.src[this.currentImg].image)?this.src[this.currentImg].title:'';
+        },300)
+      }
+
+      _onImgLoad() {
+        this.$.img.style.transition = '1s opacity';
+        this.$.img.style.opacity = 1;
+        if (!this.slide)
+          this.autoPlay();
+      }
+
+      _onImgError() {
+        if (!this.placeholderImg) {
+          this.$.img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#CCC" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>');
+        }
+      }
+
+    }
+
+    customElements.define(ShopImageSlider.is, ShopImageSlider);
+
+  </script>
+
+</dom-module>
