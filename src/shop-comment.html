@@ -1,0 +1,216 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="shop-button.html">
+<link rel="import" href="shop-common-styles.html">
+<link rel="import" href="shop-form-styles.html">
+<link rel="import" href="shop-input.html">
+<link rel="import" href="shop-select.html">
+<link rel="import" href="shop-checkbox.html">
+
+<dom-module id="shop-comment">
+
+  <template>
+
+    <style include="shop-common-styles shop-button shop-form-styles shop-input shop-select shop-checkbox">
+
+      shop-input, shop-select {
+        font-size: 16px;
+      }
+
+      paper-spinner-lite {
+        position: fixed;
+        top: calc(50% - 14px);
+        left: calc(50% - 14px);
+      }
+
+      .row {
+        @apply --layout-horizontal;
+        @apply --layout-end;
+      }
+
+      .column {
+        @apply --layout-vertical;
+        margin-bottom: 20px;
+      }
+
+      .row > .flex,
+      .input-row > * {
+        @apply --layout-flex;
+      }
+
+      .input-row > *:not(:first-child) {
+        margin-left: 8px;
+      }
+
+      .shop-select-label {
+        line-height: 20px;
+      }
+
+      p {
+        font-size: 16px;
+        text-align: justify;
+      }
+
+    </style>
+
+    <p>To submit your comment, please complete the form below:</p>
+    <div class="row input-row">
+      <shop-input>
+        <input type="text" id="accountName" name="accountName"
+            placeholder="Name" autofocus required
+            aria-labelledby="accountNameLabel accountInfoHeading">
+        <shop-md-decorator error-message="Invalid Name" aria-hidden="true">
+          <label id="accountNameLabel">Name</label>
+          <shop-underline></shop-underline>
+        </shop-md-decorator>
+      </shop-input>
+      <shop-input>
+        <input type="text" id="bookCode" name="bookCode"
+            placeholder="Book Code" required
+            aria-labelledby="bookCodeLabel">
+        <shop-md-decorator>
+          <label id="bookCodeLabel">Book Code</label>
+          <shop-underline></shop-underline>
+        </shop-md-decorator>
+      </shop-input>
+    </div>
+    <div class="row input-row">
+      <div class="column">
+        <label id="shipCountryLabel" class="shop-select-label">Country</label>
+        <shop-select>
+          <select id="shipCountry" name="shipCountry"
+              aria-labelledby="shipCountryLabel shipAddressHeading" on-change='_country'>
+            <template is="dom-repeat" items="{{countries}}" as="c">
+              <option value="{{c.dial_code}}">{{c.name}}</option>
+            </template>
+          </select>
+          <shop-md-decorator aria-hidden="true">
+            <shop-underline></shop-underline>
+          </shop-md-decorator>
+        </shop-select>
+      </div>
+      <div class="column">
+        <label>Level of Satisfaction</label>
+        <div class="row">
+          <paper-icon-button icon="star-border" on-tap="setStar" id="1"></paper-icon-button>
+          <paper-icon-button icon="star-border" on-tap="setStar" id="2"></paper-icon-button>
+          <paper-icon-button icon="star-border" on-tap="setStar" id="3"></paper-icon-button>
+          <paper-icon-button icon="star-border" on-tap="setStar" id="4"></paper-icon-button>
+          <paper-icon-button icon="star-border" on-tap="setStar" id="5"></paper-icon-button>
+        </div>
+      </div>
+    </div>
+    <div class="column">
+      <textarea id="comment" name="comment" rows="5" required 
+          placeholder="Place your comments, message here..."
+          aria-labelledby="commentLabel commentHeading"></textarea>
+    </div>
+    <shop-button>
+      <input type="button" on-click="_submit" value="Submit">
+    </shop-button>
+
+    <!-- Show spinner when waiting for the server to repond -->
+    <paper-spinner-lite active="[[waiting]]"></paper-spinner-lite>
+
+  </template>
+
+  <script>
+
+    class ShopComment extends Polymer.Element {
+
+      static get is() { return 'shop-comment'; }
+
+      static get properties() { return {
+        countries: {
+          type: Array,
+          value: countries
+        },
+        phoneCode: {
+          type: String,
+          value: '+93'
+        },
+        waiting: {
+          type: Boolean,
+          value: false
+        },
+        satisfaction: {
+          type: String,
+          value: "0"
+        }
+
+      }}
+
+      setStar(e) {
+        console.log(e.target.getAttribute('id'))
+        this.satisfaction = e.target.getAttribute('id');
+        for (let s=1; s<=5; s++) {
+          this.$[s].setAttribute('icon','star-border')
+          if (s<=Number(e.target.getAttribute('id')))
+            this.$[s].setAttribute('icon','star')
+        }
+      }
+      resetStar() {
+        this.satisfaction = "0";
+        for (let s=1; s<=5; s++)
+          this.$[s].setAttribute('icon','star-border')
+      }
+
+      _country(e){
+        this.phoneCode = e.target.value;
+      }
+
+      _submit(e) {
+        if (this.$.accountName.checkValidity() && this.$.bookCode.checkValidity() && this.$.comment.checkValidity()) {
+          this.waiting = true;
+          var today = new Date();
+          var dd = today.getDate();
+          var mm = today.getMonth()+1;
+          var hh = today.getHours();
+          var ii = today.getMinutes();
+
+          var yyyy = today.getFullYear();
+          if(dd<10){
+              dd='0'+dd;
+          } 
+          if(mm<10){
+              mm='0'+mm;
+          }
+          var today = yyyy +'-'+ mm +'-'+ dd +' '+ hh +':'+ ii;
+          db.collection("testimoni").add({data:JSON.stringify({
+            name: this.$.accountName.value,
+            code: this.$.bookCode.value,
+            country: this.$.shipCountry.options[this.$.shipCountry.selectedIndex].text,
+            satisfaction: this.satisfaction,
+            comment: this.$.comment.value,
+            createDate: today
+          })}).then(()=>{
+            this.$.accountName.value = '';
+            this.$.bookCode.value = '';
+            this.$.shipCountry.value = '+93';
+            this.$.comment.value = '';
+            this.resetStar();
+            console.log("Document successfully written!");
+            this.waiting = false;
+            this.dispatchEvent(new CustomEvent('pull'));
+          }).catch(function(error) {
+              console.log("Error getting document:", error);
+          })
+        }
+      }
+    }
+
+    customElements.define(ShopComment.is, ShopComment);
+
+  </script>
+
+</dom-module>
