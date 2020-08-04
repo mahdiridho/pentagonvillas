@@ -1,0 +1,106 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shop-question.html">
+
+<dom-module id="shop-contact">
+
+  <template>
+
+    <style include="shop-button">
+
+      shop-images-slider {
+        position: relative;
+        height: 500px;
+      }
+
+      #container {
+        @apply --layout-horizontal;
+        @apply --layout-around-justified;
+      }
+
+      #content {
+        width: 80%;
+      }
+
+      p {
+        font-size: 16px;
+      }
+
+      @media (max-width: 767px) {
+        #content {
+          width: 95%;
+          padding: 5px;
+        }
+      }
+
+    </style>
+
+    <shop-image-slider src="[[categories]]" current-img=6 slide=true></shop-image-slider>
+    <div id="container">
+      <div id="content" hidden="[[general]]">
+        <h1>How can we help?</h1>
+        <p>Call us now or click here to make a booking enquiry and we’ll get back to you shortly.</p>
+        <p>Opening hours: Monday - Sunday, 7AM - 10PM (GMT+8)</p>
+        <p>To view our availability calendar, click <a href="/rates" style="text-decoration: none; color: blue;">here</a>.</p>
+
+        <p>[Replace additional contact info including office address, phone number, email, etc]</p>
+
+        <p>Please note that the local time zone for all the above centres is GMT +8.</p>
+        <shop-button>
+          <input type="button" on-click="_question" value="General Question">
+        </shop-button>
+      </div>
+      <div hidden="[[!general]]">
+        <shop-question on-back="_question"></shop-question>
+      </div>
+    </div>
+  </template>
+
+  <script>
+
+    class ShopContact extends Polymer.Element {
+
+      static get is() { return 'shop-contact'; }
+
+      static get properties() { return {
+        categories: {
+          type: Object
+        },
+
+        visible: {
+          type: Boolean,
+          observer: '_visibleChanged'
+        },
+        general: {
+          type: Boolean,
+          value: false
+        }
+
+      }}
+
+      _question() {
+        this.general = !this.general;
+      }
+
+      _visibleChanged(visible) {
+        if (visible) {
+          this.dispatchEvent(new CustomEvent('change-section', {
+            bubbles: true, composed: true, detail: {title: 'Contact Us'}}));
+        }
+      }
+    }
+
+    customElements.define(ShopContact.is, ShopContact);
+
+  </script>
+
+</dom-module>
