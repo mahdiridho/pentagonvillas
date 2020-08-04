@@ -1,0 +1,168 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="shop-location">
+
+  <template>
+
+    <style include="shop-button">
+
+      shop-images-slider {
+        position: relative;
+        height: 500px;
+      }
+
+      #container {
+        @apply --layout-horizontal;
+        @apply --layout-around-justified;
+      }
+
+      #content {
+        width: 80%;
+      }
+
+      .horizontal {
+        @apply --layout-horizontal;
+        @apply --layout-justified;
+        @apply --layout-wrap;
+      }
+
+      .vertical {
+        @apply --layout-vertical;
+        margin-top: 30px;
+      }
+
+      p {
+        font-size: 16px;
+      }
+
+      td {
+        font-size: 16px;
+        text-align: justify;
+        border-right: 20px solid transparent;
+      }
+
+      img {
+         width: 300px; height: 225px;
+         margin: 0 0 30px;
+         border: 5px solid #aaa;
+      }
+
+      @media (max-width: 767px) {
+        #content {
+          width: 95%;
+        }
+      }
+
+    </style>
+
+    <shop-image-slider src="[[categories]]" current-img=3 slide=true></shop-image-slider>
+    <div id="container">
+      <div id="content">
+        <h1>Address</h1>
+        <p>[Full address info]</p>
+        <div class="horizontal">
+          <div>
+            <h1>Nearby Places</h1>
+            <table>
+              <tr>
+                <td>Petitenget Beach</td><td>0.8km</td>
+              </tr>
+              <tr>
+                <td>Seminyak Square</td><td>1.6km</td>
+              </tr>
+              <tr>
+                <td>Canggu</td><td>11km</td>
+              </tr>
+              <tr>
+                <td>Ngurah Rai Airport</td><td>13km</td>
+              </tr>
+              <tr>
+                <td>Tanah Lot</td><td>17km</td>
+              </tr>
+              <tr>
+                <td>Sanur Port</td><td>19km</td>
+              </tr>
+              <tr>
+                <td>Monkey Forest</td><td>28km</td>
+              </tr>
+              <tr>
+                <td>Uluwatu</td><td>29km</td>
+              </tr>
+              <tr>
+                <td>Ubud</td><td>29km</td>
+              </tr>
+              <tr>
+                <td>Bali Safari</td><td>29km</td>
+              </tr>
+              <tr>
+                <td>Tegallalang Rice Terrace (UNESCO Heritage)</td><td>38km</td>
+              </tr>
+              <tr>
+                <td>Bratan Lake</td><td>54km</td>
+              </tr>
+              <tr>
+                <td>Mount Agung</td><td>70km</td>
+              </tr>
+              <tr>
+                <td>Mount Batur</td><td>71km</td>
+              </tr>
+              <tr>
+                <td>Lovina Beach</td><td>82km</td>
+              </tr>
+              <tr>
+                <td>Amed Dive Center</td><td>92km</td>
+              </tr>
+            </table>
+          </div>
+          <div class="vertical">
+            <img src="../images/map1.jpg">
+            <img src="../images/map2.jpg">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+
+    class ShopLocation extends Polymer.Element {
+
+      static get is() { return 'shop-location'; }
+
+      static get properties() { return {
+
+        categories: {
+          type: Object
+        },
+
+        visible: {
+          type: Boolean,
+          observer: '_visibleChanged'
+        }
+
+      }}
+
+      _visibleChanged(visible) {
+        if (visible) {
+          this.dispatchEvent(new CustomEvent('change-section', {
+            bubbles: true, composed: true, detail: {title: 'Maps, Nearby Venues & Distance'}}));
+        }
+      }
+    }
+
+    customElements.define(ShopLocation.is, ShopLocation);
+
+  </script>
+
+</dom-module>
