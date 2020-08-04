@@ -1,0 +1,742 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="shop-button.html">
+<link rel="import" href="shop-common-styles.html">
+<link rel="import" href="shop-form-styles.html">
+<link rel="import" href="shop-input.html">
+<link rel="import" href="shop-select.html">
+<link rel="import" href="shop-checkbox.html">
+
+<dom-module id="shop-booking">
+
+  <template>
+    <style include="shop-common-styles shop-button shop-form-styles shop-input shop-select shop-checkbox">
+
+      .main-frame {
+        transition: opacity 0.5s;
+      }
+
+      :host([waiting]) .main-frame {
+        opacity: 0.1;
+      }
+
+      shop-input, shop-select {
+        font-size: 16px;
+      }
+
+      shop-select {
+        margin-bottom: 20px;
+      }
+
+      paper-spinner-lite {
+        position: fixed;
+        top: calc(50% - 14px);
+        left: calc(50% - 14px);
+      }
+
+      .billing-address-picker {
+        margin: 28px 0;
+        height: 20px;
+        @apply --layout-horizontal;
+      }
+
+      .billing-address-picker > label {
+        margin-left: 12px;
+      }
+
+      .grid {
+        margin-top: 300px;
+        @apply --layout-horizontal;
+      }
+
+      .grid > section {
+        @apply --layout-flex;
+      }
+
+      .grid > section:not(:first-child) {
+        margin-left: 80px;
+      }
+
+      .row {
+        @apply --layout-horizontal;
+        @apply --layout-end;
+      }
+
+      .column {
+        @apply --layout-vertical;
+        margin-bottom: 20px;
+      }
+
+      .row > .flex,
+      .input-row > * {
+        @apply --layout-flex;
+      }
+
+      .input-row > *:not(:first-child) {
+        margin-left: 8px;
+      }
+
+      .shop-select-label {
+        line-height: 20px;
+      }
+
+      .order-summary-row {
+        line-height: 24px;
+      }
+
+      .total-row {
+        font-weight: 500;
+        margin: 30px 0;
+      }
+
+      p, li {
+        font-size: 16px;
+        text-align: justify;
+      }
+
+      @media (max-width: 767px) {
+
+        .grid {
+          display: block;
+          margin-top: 0;
+        }
+
+        .grid > section:not(:first-child) {
+          margin-left: 0;
+        }
+
+      }
+
+    </style>
+    <iron-ajax id="sendMail"
+        method='POST'
+        headers='{"content-type"="application/x-www-form-urlencoded"}'
+        url="<mail_service_url>"
+        handle-as="text"
+        on-response="mailResponse" 
+        on-error="mailError"></iron-ajax>
+
+    <shop-image-slider src="[[categories]]" current-img=5 slide=true></shop-image-slider>
+    <div class="main-frame">
+      <iron-pages id="pages" selected="[[state]]" attr-for-selected="state">
+        <div state="init">
+          <iron-form id="checkoutForm"
+              on-iron-form-response="_didReceiveResponse"
+              on-iron-form-presubmit="_willSendRequest">
+            <form method="post" action="data/sample_success_response.json">
+              <div>
+                <section>
+                  <h1>Villa Pentagon Bali</h1>
+                  <div class="row">
+                    <input type="radio" name="suffix" value="Mr" placeholder="Mr" checked on-click="_suffix">Mr&nbsp;&nbsp;
+                    <input type="radio" name="suffix" value="Ms" placeholder="Ms" on-click="_suffix">Ms&nbsp;&nbsp;
+                    <input type="radio" name="suffix" value="Mrs" placeholder="Mrs" on-click="_suffix">Mrs
+                  </div>
+                  <div class="row input-row">
+                    <shop-input>
+                      <input type="text" id="firstName" name="firstName"
+                          placeholder="First Name" autofocus required
+                          aria-labelledby="firstNameLabel accountInfoHeading">
+                      <shop-md-decorator error-message="Invalid Name" aria-hidden="true">
+                        <label id="firstNameLabel">First Name</label>
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-input>
+                    <shop-input>
+                      <input type="text" id="lastName" name="lastName"
+                          placeholder="Last Name" autofocus required
+                          aria-labelledby="lastNameLabel accountInfoHeading">
+                      <shop-md-decorator error-message="Invalid Name" aria-hidden="true">
+                        <label id="lastNameLabel">Last Name</label>
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-input>
+                  </div>
+                  <div class="row input-row">
+                    <shop-input>
+                      <input type="email" id="accountEmail" name="accountEmail"
+                          placeholder="Email" required
+                          aria-labelledby="accountEmailLabel accountInfoHeading">
+                      <shop-md-decorator error-message="Invalid Email" aria-hidden="true">
+                        <label id="accountEmailLabel">Email</label>
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-input>
+                  </div>
+                  <div class="row input-row">
+                    <shop-input>
+                      <input type="date" id="accountArrival" name="accountArrival"
+                          placeholder="Arrival Date"
+                          aria-labelledby="accountArrivalLabel accountInfoHeading" on-change='_checkDate'>
+                      <shop-md-decorator error-message="Invalid Arrival Date" aria-hidden="true">
+                        <label id="accountArrivalLabel">Checkin Date</label>
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-input>
+                    <shop-input>
+                      <input type="date" id="accountDeparture" name="accountDeparture"
+                          placeholder="Departure Date"
+                          aria-labelledby="accountDepartureLabel accountInfoHeading" on-change='_checkDate'>
+                      <shop-md-decorator error-message="Invalid Departure Date" aria-hidden="true">
+                        <label id="accountDepartureLabel">Checkout Date</label>
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-input>
+                  </div>
+                  <div class="row input-row">
+                    <div class="billing-address-picker">
+                      <label for="setFlexible">Dates are flexible</label>&nbsp;
+                      <shop-checkbox>
+                        <input type="checkbox" name="setFlexible"
+                            checked$="{{hasFlexible}}" on-change="_toggleFlexible">
+                        <shop-md-decorator aria-hidden="true"></shop-md-decorator>
+                      </shop-checkbox>
+                    </div>
+                    <label class="billing-address-picker" style="color: #666; font-weight: bold; font-style: italic;">{{_getPrices(prices)}}</label>
+                  </div>
+<!--                   <div class="row input-row">
+                    <div class="billing-address-picker">
+                      <label for="setEvent">Do you intend to hold a function (wedding, special party, etc) during your stay?</label>&nbsp;
+                      <shop-checkbox>
+                        <input type="checkbox" name="setEvent"
+                            checked$="{{hasEvent}}" on-change="_toggleEvent">
+                        <shop-md-decorator></shop-md-decorator aria-hidden="true">
+                      </shop-checkbox>
+                    </div>
+                  </div> -->
+                  <label>No. of guests:</label>
+                  <div class="row input-row">
+                    <shop-input>
+                      <input type="number" id="adult" name="adult" max="20" min="0" value="0" 
+                          placeholder="Adults"
+                          aria-labelledby="adultLabel adultHeading">
+                      <shop-md-decorator>
+                        <label id="adultLabel">Adult</label>
+                      </shop-md-decorator>
+                    </shop-input>
+                    <shop-input>
+                      <input type="number" id="children" name="children" max="20" min="0" value="0"
+                          placeholder="Children (2-11yrs)"
+                          aria-labelledby="childrenLabel childrenHeading">
+                      <shop-md-decorator>
+                        <label id="childrenLabel">Children (2-11yrs)</label>
+                      </shop-md-decorator>
+                    </shop-input>
+                    <shop-input>
+                      <input type="number" id="infant" name="infant" max="20" min="0" value="0"
+                          placeholder="Infants"
+                          aria-labelledby="infantLabel infantHeading">
+                      <shop-md-decorator>
+                        <label id="infantLabel">Infant</label>
+                      </shop-md-decorator>
+                    </shop-input>
+                  </div>
+                  <div class="column">
+                    <label id="shipCountryLabel" class="shop-select-label">Country of origin</label>
+                    <shop-select>
+                      <select id="shipCountry" name="shipCountry"
+                          aria-labelledby="shipCountryLabel shipAddressHeading" on-change='_country'>
+                        <template is="dom-repeat" items="{{countries}}" as="c">
+                          <option value="{{c.dial_code}}">{{c.name}}</option>
+                        </template>
+                      </select>
+                      <shop-md-decorator aria-hidden="true">
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-select>
+                  </div>
+                  <div class="row input-row">
+                    <shop-input>
+                      <input type="text" id="accountPhone" name="accountPhone" pattern="\d{9,}"
+                          placeholder="Phone Number {{phoneCode}}" required
+                          aria-labelledby="accountPhoneLabel accountInfoHeading">
+                      <shop-md-decorator error-message="Invalid Phone Number" aria-hidden="true">
+                        <label id="accountPhoneLabel">Phone Number {{phoneCode}}</label>
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-input>
+                  </div>
+                  <div class="row input-row">
+                    <shop-input>
+                      <input type="text" id="shipAddress" name="shipAddress" pattern=".{5,}"
+                          placeholder="Address" required
+                          aria-labelledby="shipAddressLabel shipAddressHeading">
+                      <shop-md-decorator error-message="Invalid Address" aria-hidden="true">
+                        <label id="shipAddressLabel">Address</label>
+                        <shop-underline></shop-underline>
+                      </shop-md-decorator>
+                    </shop-input>
+                  </div>
+                  <div class="column">
+                    <label id="questionLabel">Questions and special requests:</label>
+                    <textarea id="question" name="question" rows="5" 
+                        placeholder="Place your requests, message here..."
+                        aria-labelledby="questionLabel questionHeading"></textarea>
+                  </div>
+                  <shop-button>
+                    <input type="button" on-click="_submit" value="Submit">
+                  </shop-button>
+                </section>
+              </div>
+            </form>
+          </iron-form>
+        </div>
+
+        <!-- Success message UI -->
+        <header state="success">
+          <h1>Thank you for booking Villa Pentagon Bali</h1>
+          <p>Booking Code #{{code}}<br>
+          Total amount US ${{prices}}</p>
+          <p>In order to secure your booking, please pay the total amount via Paypal Instantly or Bank Transfer within 48 hours. Should you wish to choose Bank Transfer, our Reservation Desk will revert to you shortly with Bank details.</p>
+          <p>Please choose your payment method below</p>
+          <p>
+            <a href="<paypal_link_generator>" target="_blank" on-click="_finish"><img src="../images/paypal.png" style="width:100px"></a><br>
+            <shop-button style="margin-top: 10px">
+              <a href="/booking/bank">Bank Transfer</a>
+            </shop-button>
+          </p>
+        </header>
+
+        <!-- Success message UI -->
+        <header state="bank">
+          <p>
+            Bank Transfer directly to the owner’s Account Numbers:<br>
+            Total Amount US ${{prices}} (manually convertion to local bank)<br>
+            Account Holder Name: [bank_holder_name]<br>
+            Bank Name: [bank_name]<br>
+            Swift Code: [swift_code]<br>
+            Bank Address: [bank_address]<br>
+          </p>
+          <shop-button style="margin-top: 10px">
+            <a href="/">Finish</a>
+          </shop-button>
+        </header>
+
+        <!-- Error message UI -->
+        <header state="error">
+          <h1>We couldn&acute;t process your order</h1>
+          <p id="errorMessage" style="text-align: center;">[[response.errorMessage]]</p>
+          <shop-button>
+            <a href="/booking">Try again</a>
+          </shop-button>
+        </header>
+
+      </iron-pages>
+
+    </div>
+
+    <!-- Handles the routing for the success and error subroutes -->
+    <app-route
+        active="{{routeActive}}"
+        data="{{routeData}}"
+        route="[[route]]"
+        pattern="/:state">
+     </app-route>
+
+    <!-- Show spinner when waiting for the server to repond -->
+    <paper-spinner-lite active="[[waiting]]"></paper-spinner-lite>
+
+  </template>
+
+  <script>
+
+    class ShopBooking extends Polymer.Element {
+
+      static get is() { return 'shop-booking'; }
+
+      static get properties() { return {
+        countries: {
+          type: Array,
+          value: countries
+        },
+
+        /**
+         * The route for the state. e.g. `success` and `error` are mounted in the
+         * `checkout/` route.
+         */
+        route: {
+          type: Object,
+          notify: true
+        },
+
+        /**
+         * The state of the form. Valid values are:
+         * `init`, `success` and `error`.
+         */
+        state: {
+          type: String,
+          value: 'init'
+        },
+
+        /**
+         * The server's response.
+         */
+        response: Object,
+
+        /**
+         * If true, the user must enter a billing address.
+         */
+        hasBillingAddress: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * If true, shop-booking is currently visible on the screen.
+         */
+        visible: {
+          type: Boolean,
+          observer: '_visibleChanged'
+        },
+
+        /**
+         * True when waiting for the server to repond.
+         */
+        waiting: {
+          type: Boolean,
+          readOnly: true,
+          reflectToAttribute: true
+        },
+
+        hasFlexible: {
+          type: Boolean,
+          value: false
+        },
+        hasEvent: {
+          type: Boolean,
+          value: false
+        },
+        phoneCode: {
+          type: String,
+          value: '+93'
+        },
+        suffix: {
+          type: String,
+          value: 'Mr'
+        },
+        prices: {
+          type: Number,
+          value: 0
+        }
+
+      }}
+
+      _finish(){
+        db.collection("booking").doc(this.docID).update({
+          payment: "paypal"
+        }).then(()=>{
+          console.log("Document successfully updated!");
+          this.docID = null;
+        }).catch((error)=>{
+          // The document probably doesn't exist.
+          console.error("Error updating document: ", error);
+        })
+      }
+
+      _getPrices(prices) {
+        if (prices>0)
+          return "Estimate Prices: US $"+prices
+        else
+          return ""
+      }
+
+      _checkDate(){
+        if (this.$.accountArrival.value && this.$.accountDeparture.value) {
+          this.tempObj = [];
+          if (new Date(this.$.accountDeparture.value).getTime() > new Date(this.$.accountArrival.value).getTime()) {
+            let range = new Date(this.$.accountDeparture.value).getTime() - new Date(this.$.accountArrival.value).getTime();
+            range = range/24/3600000;
+            let time = new Date(this.$.accountArrival.value).getTime();
+            let prices = 0;
+            for (let c=0; c<range; c++) {
+              time = new Date(time)
+              let year = time.getFullYear();
+              let month = time.getMonth();
+              let day = time.getDate()-1;
+              let price = Number(allDays[year][month][day].price);
+              prices += price;
+              this.tempObj[c] = {year:year,month:month,day:day}
+              time = time.getTime() + 86400000;
+            }
+            this.prices = prices;
+          } else {
+            this.prices = 0;
+            this.$.accountDeparture.value = null;
+          }
+        } else
+          this.prices = 0;
+      }
+
+      static get observers() { return [
+        '_updateState(routeActive, routeData)'
+      ]}
+
+      _country(e){
+        this.phoneCode = e.target.value;
+        console.log(this.phoneCode)
+      }
+
+      _toggleFlexible(e) {
+        this.hasFlexible = e.target.checked;
+      }
+
+      _toggleEvent(e) {
+        this.hasEvent = e.target.checked;
+      }
+
+      _suffix(s) {
+        this.suffix = s.target.value;
+      }
+
+      _submit(e) {
+        if (this._validateForm()) {
+          this._setWaiting(true);
+          var today = new Date();
+          var dd = today.getDate();
+          var mm = today.getMonth()+1;
+          var hh = today.getHours();
+          var ii = today.getMinutes();
+
+          var yyyy = today.getFullYear();
+          if(dd<10){
+              dd='0'+dd;
+          } 
+          if(mm<10){
+              mm='0'+mm;
+          }
+          var today = yyyy +'-'+ mm +'-'+ dd +' '+ hh +':'+ ii;
+          this.code = this.$.firstName.value.substring(0,1)+''+this.$.lastName.value.substring(0,1)+''+yyyy+mm+dd;
+          var batch = db.batch();
+          let startYear = this.tempObj[0].year, i=[this.tempObj[0].year];
+          for (let t=0; t<this.tempObj.length; t++) {
+            if (startYear != this.tempObj[t].year)i.push(this.tempObj[t].year);
+            allDays[''+this.tempObj[t].year][this.tempObj[t].month][this.tempObj[t].day].roomState = 1;
+          }
+          for (let y=0; y<i.length; y++){
+            var sfRef = db.collection("calendar").doc(''+i[y]);
+            batch.set(sfRef, {data: JSON.stringify(allDays[''+i[y]])});
+          }
+          this.$.sendMail.body = 'code='+this.code+'&email='+this.$.accountEmail.value+'&name='+this.$.firstName.value+'+'+this.$.lastName.value+'&checkin='+this.$.accountArrival.value+'&checkout='+this.$.accountDeparture.value+'&address='+this.$.shipAddress.value+'&country='+this.$.shipCountry.value+'&phone='+this.$.accountPhone.value+'&adult='+this.$.adult.value+'&children='+this.$.children.value+'&infant='+this.$.infant.value+'&price='+this.prices;
+          db.collection("booking").add({
+            suffix: this.suffix,
+            firstName: this.$.firstName.value,
+            lastName: this.$.lastName.value,
+            email: this.$.accountEmail.value,
+            checkin: this.$.accountArrival.value,
+            checkout: this.$.accountDeparture.value,
+            flexible: this.hasFlexible,
+            adult: this.$.adult.value,
+            children: this.$.children.value,
+            infant: this.$.infant.value,
+            phone: this.phoneCode+' '+this.$.accountPhone.value,
+            country: this.$.shipCountry.options[this.$.shipCountry.selectedIndex].text,
+            address: this.$.shipAddress.value,
+            question: (this.$.question.value!='')?this.$.question.value:'no',
+            code: this.code,
+            prices: this.prices,
+            payment: "bank",
+            createDate: today
+          }).then((docRef)=>{
+            this.docID = docRef.id;
+            batch.commit().then(()=>{
+              this.$.firstName.value = '';
+              this.$.lastName.value = '';
+              this.$.accountEmail.value = '';
+              this.$.accountArrival.value = null;
+              this.$.accountDeparture.value = null;
+              this.hasFlexible = false;
+              this.$.adult.value = 0;
+              this.$.children.value = 0;
+              this.$.infant.value = 0;
+              this.$.accountPhone.value = '';
+              this.$.shipAddress.value = '';
+              this.$.shipCountry.value = '+93';
+              this.$.question.value = '';
+              console.log("Document successfully written!");
+
+              this.$.sendMail.generateRequest();
+            })
+          }).catch((error)=>{
+            this._setWaiting(false);
+            console.log("Error getting document:", error);
+          })
+        }
+      }
+
+      /** Pull service returns
+      */
+      mailResponse(e){
+        this.$.checkoutForm.dispatchEvent(new CustomEvent('iron-form-presubmit', {
+          composed: true}));
+
+        this._submitFormDebouncer = Polymer.Debouncer.debounce(this._submitFormDebouncer,
+          Polymer.Async.timeOut.after(1000), () => {
+            this._setWaiting(false);
+            this.$.checkoutForm.dispatchEvent(new CustomEvent('iron-form-response', {
+              composed: true, detail: {
+                response: {
+                  success: 1,
+                  successMessage: ''
+                }
+              }}));
+          });
+      }
+
+      /** Pull service error
+      */
+      mailError (e){
+        alert("Failed system ",e);
+        this._setWaiting(false);
+      }
+
+      /**
+       * Sets the valid state and updates the location.
+       */
+      _pushState(state) {
+        this._validState = state;
+        this.set('route.path', state);
+      }
+
+      /**
+       * Checks that the `:state` subroute is correct. That is, the state has been pushed
+       * after receiving response from the server. e.g. Users can only go to `/checkout/success`
+       * if the server responsed with a success message.
+       */
+      _updateState(active, routeData) {
+        if (active && routeData) {
+          let state = routeData.state;
+          if (state == 'cancel') {
+            this.state = 'init';
+          } else
+            this.state = state;
+          this._validState = '';
+          return;
+        }
+        this.state = 'init';
+      }
+
+      /**
+       * Sets the initial state.
+       */
+      _reset() {
+        let form = this.$.checkoutForm;
+
+        this._setWaiting(false);
+
+        let nativeForm = form._form;
+        if (!nativeForm) {
+          return;
+        }
+
+        // Remove the `aria-invalid` attribute from the form inputs.
+        for (let el, i = 0; el = nativeForm.elements[i], i < nativeForm.elements.length; i++) {
+          el.removeAttribute('aria-invalid');
+        }
+      }
+
+      /**
+       * Validates the form's inputs and adds the `aria-invalid` attribute to the inputs
+       * that don't match the pattern specified in the markup.
+       */
+      _validateForm() {
+        let form = this.$.checkoutForm;
+        let firstInvalid = false;
+        let nativeForm = form._form;
+
+        for (let el, i = 0; el = nativeForm.elements[i], i < nativeForm.elements.length; i++) {
+          if (el.checkValidity()) {
+            el.removeAttribute('aria-invalid');
+          } else {
+            if (!firstInvalid) {
+              // announce error message
+              if (el.nextElementSibling) {
+                this.dispatchEvent(new CustomEvent('announce', {bubbles: true, composed: true,
+                  detail: el.nextElementSibling.getAttribute('error-message')}));
+              }
+              if (el.scrollIntoViewIfNeeded) {
+                // safari, chrome
+                el.scrollIntoViewIfNeeded();
+              } else {
+                // firefox, edge, ie
+                el.scrollIntoView(false);
+              }
+              el.focus();
+              firstInvalid = true;
+            }
+            el.setAttribute('aria-invalid', 'true');
+          }
+        }
+        return !firstInvalid;
+      }
+
+      /**
+       * Adds the cart data to the payload that will be sent to the server
+       * and updates the UI to reflect the waiting state.
+       */
+      _willSendRequest(e) {
+        let form = e.target;
+        let body = form.ajax && form.ajax.body;
+/*
+        this._setWaiting(true);
+
+        if (!body) {
+          return;
+        }*/
+      }
+
+      /**
+       * Handles the response from the server by checking the response status
+       * and transitioning to the success or error UI.
+       */
+      _didReceiveResponse(e) {
+        let response = e.detail.response;
+
+        this.response = response;
+        this._setWaiting(true);
+
+        if (response.success) {
+          this._pushState('success');
+          this._reset();
+        } else {
+          this._pushState('error');
+        }
+      }
+
+      _toggleBillingAddress(e) {
+        this.hasBillingAddress = e.target.checked;
+
+        if (this.hasBillingAddress) {
+          this.$.billAddress.focus();
+        }
+      }
+
+      _visibleChanged(visible) {
+        if (!visible) {
+          return;
+        }
+        // Reset the UI states
+        this._reset();
+        // Notify the page's title
+        this.dispatchEvent(new CustomEvent('change-section', {
+          bubbles: true, composed: true, detail: { title: 'Book Now' }}));
+      }
+
+    }
+
+    customElements.define(ShopBooking.is, ShopBooking);
+
+  </script>
+
+</dom-module>
